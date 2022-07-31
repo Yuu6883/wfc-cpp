@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
-set(SRC src/lib/wave.cpp src/lib/propagator.cpp src/lib/wfc.cpp)
+set(SRC src/wave.cpp src/propagator.cpp src/wfc.cpp)
 
 add_library(${PROJECT_NAME}_static STATIC ${SRC})
 add_library(${PROJECT_NAME} SHARED ${SRC})
