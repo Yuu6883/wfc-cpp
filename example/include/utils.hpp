@@ -1,5 +1,5 @@
-#ifndef FAST_WFC_UTILS_UTILS_HPP_
-#define FAST_WFC_UTILS_UTILS_HPP_
+#ifndef WFC_UTILS_UTILS_HPP_
+#define WFC_UTILS_UTILS_HPP_
 
 #include <string>
 #include <vector>
@@ -20,4 +20,4 @@ std::string get_dir(const std::string& file_path) {
     }
 }
 
-#endif  // FAST_WFC_UTILS_UTILS_HPP_
+#endif  // WFC_UTILS_UTILS_HPP_

@@ -1,5 +1,5 @@
-#ifndef FAST_WFC_UTILS_RAPIDXML_UTILS_HPP_
-#define FAST_WFC_UTILS_RAPIDXML_UTILS_HPP_
+#ifndef WFC_UTILS_RAPIDXML_UTILS_HPP_
+#define WFC_UTILS_RAPIDXML_UTILS_HPP_
 
 #include "external/rapidxml.hpp"
 
@@ -29,4 +29,4 @@ std::string get_attribute(xml_node<> *node,
 
 }  // namespace rapidxml
 
-#endif  // FAST_WFC_UTILS_IMAGE_HPP_
+#endif  // WFC_UTILS_IMAGE_HPP_

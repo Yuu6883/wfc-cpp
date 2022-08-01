@@ -1,5 +1,7 @@
 .vscode
+.vs
 
 # Build
 build/*
 example/build/*
+out/*

@@ -1,24 +1,29 @@
-#ifndef FAST_WFC_TILING_WFC_HPP_
-#define FAST_WFC_TILING_WFC_HPP_
+#ifndef WFC_TILING_WFC_HPP_
+#define WFC_TILING_WFC_HPP_
 
 #include <unordered_map>
 #include <vector>
 
-#include "utils/array2D.hpp"
+#include "utils/array_2d.hpp"
 #include "wfc.hpp"
 
 /**
- * The distinct symmetries of a tile.
- * It represents how the tile behave when it is rotated or reflected
+ * A tile that can be placed on the board.
  */
-enum class Symmetry { X, T, I, L, backslash, P };
+template <typename T>
+struct Tile {
+    /**
+     * The distinct symmetries of a tile.
+     * It represents how the tile behave when it is rotated or reflected
+     */
+    enum class Symmetry { X, T, I, L, P, backslash };
 
-/**
- * Return the number of possible distinct orientations for a tile.
- * An orientation is a combination of rotations and reflections.
- */
-constexpr unsigned nb_of_possible_orientations(const Symmetry &symmetry) {
-    switch (symmetry) {
+    /**
+     * Return the number of possible distinct orientations for a tile.
+     * An orientation is a combination of rotations and reflections.
+     */
+    static constexpr uint32_t nb_orientations(const Symmetry& symmetry) {
+        switch (symmetry) {
         case Symmetry::X:
             return 1;
         case Symmetry::I:
@@ -29,23 +34,18 @@ constexpr unsigned nb_of_possible_orientations(const Symmetry &symmetry) {
             return 4;
         default:
             return 8;
+        }
     }
-}
 
-/**
- * A tile that can be placed on the board.
- */
-template <typename T>
-struct Tile {
-    std::vector<Array2D<T>> data;  // The different orientations of the tile
-    Symmetry symmetry;             // The symmetry of the tile
-    double weight;  // Its weight on the distribution of presence of tiles
+    vector<Array2D<T>> data;  // The different orientations of the tile
+    Symmetry symmetry;        // The symmetry of the tile
+    double weight;            // Its weight on the distribution of presence of tiles
 
     /**
      * Generate the map associating an orientation id to the orientation
      * id obtained when rotating 90° anticlockwise the tile.
      */
-    static std::vector<unsigned> generate_rotation_map(
+    static vector<uint32_t> generate_rotation_map(
         const Symmetry &symmetry) noexcept {
         switch (symmetry) {
             case Symmetry::X:
@@ -66,8 +66,7 @@ struct Tile {
      * Generate the map associating an orientation id to the orientation
      * id obtained when reflecting the tile along the x axis.
      */
-    static std::vector<unsigned> generate_reflection_map(
-        const Symmetry &symmetry) noexcept {
+    static vector<uint32_t> generate_reflection_map(const Symmetry &symmetry) noexcept {
         switch (symmetry) {
             case Symmetry::X:
                 return {0};
@@ -92,14 +91,19 @@ struct Tile {
      * rotations. Actions 4, 5, 6, and 7 are actions 0, 1, 2, and 3 preceded by
      * a reflection on the x axis.
      */
-    static std::vector<std::vector<unsigned>> generate_action_map(
+    static vector<vector<uint32_t>> generate_action_map(
         const Symmetry &symmetry) noexcept {
-        std::vector<unsigned> rotation_map = generate_rotation_map(symmetry);
-        std::vector<unsigned> reflection_map =
+
+        vector<uint32_t> rotation_map = generate_rotation_map(symmetry);
+
+        vector<uint32_t> reflection_map =
             generate_reflection_map(symmetry);
+
         size_t size = rotation_map.size();
-        std::vector<std::vector<unsigned>> action_map(
-            8, std::vector<unsigned>(size));
+
+        vector<vector<uint32_t>> action_map(
+            8, vector<uint32_t>(size));
+
         for (size_t i = 0; i < size; ++i) {
             action_map[0][i] = i;
         }
@@ -109,9 +113,11 @@ struct Tile {
                 action_map[a][i] = rotation_map[action_map[a - 1][i]];
             }
         }
+
         for (size_t i = 0; i < size; ++i) {
             action_map[4][i] = reflection_map[action_map[0][i]];
         }
+
         for (size_t a = 5; a < 8; ++a) {
             for (size_t i = 0; i < size; ++i) {
                 action_map[a][i] = rotation_map[action_map[a - 1][i]];
@@ -123,9 +129,9 @@ struct Tile {
     /**
      * Generate all distincts rotations of a 2D array given its symmetries;
      */
-    static std::vector<Array2D<T>> generate_oriented(
+    static vector<Array2D<T>> generate_oriented(
         Array2D<T> data, Symmetry symmetry) noexcept {
-        std::vector<Array2D<T>> oriented;
+        vector<Array2D<T>> oriented;
         oriented.push_back(data);
 
         switch (symmetry) {
@@ -159,7 +165,7 @@ struct Tile {
      * Create a tile with its differents orientations, its symmetries and its
      * weight on the distribution of tiles.
      */
-    Tile(std::vector<Array2D<T>> data, Symmetry symmetry,
+    Tile(vector<Array2D<T>> data, Symmetry symmetry,
          double weight) noexcept
         : data(data), symmetry(symmetry), weight(weight) {}
 
@@ -190,17 +196,17 @@ class TilingWFC {
     /**
      * The distincts tiles.
      */
-    std::vector<Tile<T>> tiles;
+    vector<Tile<T>> tiles;
 
     /**
      * Map ids of oriented tiles to tile and orientation.
      */
-    std::vector<std::pair<unsigned, unsigned>> id_to_oriented_tile;
+    vector<std::pair<unsigned, unsigned>> id_to_oriented_tile;
 
     /**
      * Map tile and orientation to oriented tile id.
      */
-    std::vector<std::vector<unsigned>> oriented_tile_ids;
+    vector<vector<unsigned>> oriented_tile_ids;
 
     /**
      * Otions needed to use the tiling wfc.
@@ -227,11 +233,11 @@ class TilingWFC {
     /**
      * Generate mapping from id to oriented tiles and vice versa.
      */
-    static std::pair<std::vector<std::pair<unsigned, unsigned>>,
-                     std::vector<std::vector<unsigned>>>
-    generate_oriented_tile_ids(const std::vector<Tile<T>> &tiles) noexcept {
-        std::vector<std::pair<unsigned, unsigned>> id_to_oriented_tile;
-        std::vector<std::vector<unsigned>> oriented_tile_ids;
+    static std::pair<vector<std::pair<unsigned, unsigned>>,
+                     vector<vector<unsigned>>>
+    generate_oriented_tile_ids(const vector<Tile<T>> &tiles) noexcept {
+        vector<std::pair<unsigned, unsigned>> id_to_oriented_tile;
+        vector<vector<unsigned>> oriented_tile_ids;
 
         unsigned id = 0;
         for (unsigned i = 0; i < tiles.size(); i++) {
@@ -249,28 +255,28 @@ class TilingWFC {
     /**
      * Generate the propagator which will be used in the wfc algorithm.
      */
-    static std::vector<std::array<std::vector<unsigned>, 4>>
+    static vector<array<vector<unsigned>, 4>>
     generate_propagator(
-        const std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>
+        const vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>
             &neighbors,
-        std::vector<Tile<T>> tiles,
-        std::vector<std::pair<unsigned, unsigned>> id_to_oriented_tile,
-        std::vector<std::vector<unsigned>> oriented_tile_ids) {
+        vector<Tile<T>> tiles,
+        vector<std::pair<unsigned, unsigned>> id_to_oriented_tile,
+        vector<vector<unsigned>> oriented_tile_ids) {
         size_t nb_oriented_tiles = id_to_oriented_tile.size();
-        std::vector<std::array<std::vector<bool>, 4>> dense_propagator(
-            nb_oriented_tiles, {std::vector<bool>(nb_oriented_tiles, false),
-                                std::vector<bool>(nb_oriented_tiles, false),
-                                std::vector<bool>(nb_oriented_tiles, false),
-                                std::vector<bool>(nb_oriented_tiles, false)});
+        vector<std::array<vector<bool>, 4>> dense_propagator(
+            nb_oriented_tiles, {vector<bool>(nb_oriented_tiles, false),
+                                vector<bool>(nb_oriented_tiles, false),
+                                vector<bool>(nb_oriented_tiles, false),
+                                vector<bool>(nb_oriented_tiles, false)});
 
         for (auto neighbor : neighbors) {
             unsigned tile1 = std::get<0>(neighbor);
             unsigned orientation1 = std::get<1>(neighbor);
             unsigned tile2 = std::get<2>(neighbor);
             unsigned orientation2 = std::get<3>(neighbor);
-            std::vector<std::vector<unsigned>> action_map1 =
+            vector<vector<unsigned>> action_map1 =
                 Tile<T>::generate_action_map(tiles[tile1].symmetry);
-            std::vector<std::vector<unsigned>> action_map2 =
+            vector<vector<unsigned>> action_map2 =
                 Tile<T>::generate_action_map(tiles[tile2].symmetry);
 
             auto add = [&](unsigned action, unsigned direction) {
@@ -297,7 +303,7 @@ class TilingWFC {
             add(7, 0);
         }
 
-        std::vector<std::array<std::vector<unsigned>, 4>> propagator(
+        vector<std::array<vector<unsigned>, 4>> propagator(
             nb_oriented_tiles);
         for (size_t i = 0; i < nb_oriented_tiles; ++i) {
             for (size_t j = 0; j < nb_oriented_tiles; ++j) {
@@ -315,9 +321,9 @@ class TilingWFC {
     /**
      * Get probability of presence of tiles.
      */
-    static std::vector<double> get_tiles_weights(
-        const std::vector<Tile<T>> &tiles) {
-        std::vector<double> frequencies;
+    static vector<double> get_tiles_weights(
+        const vector<Tile<T>> &tiles) {
+        vector<double> frequencies;
         for (size_t i = 0; i < tiles.size(); ++i) {
             for (size_t j = 0; j < tiles[i].data.size(); ++j) {
                 frequencies.push_back(tiles[i].weight / tiles[i].data.size());
@@ -362,8 +368,8 @@ class TilingWFC {
      * Construct the TilingWFC class to generate a tiled image.
      */
     TilingWFC(
-        const std::vector<Tile<T>> &tiles,
-        const std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>
+        const vector<Tile<T>> &tiles,
+        const vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>
             &neighbors,
         const unsigned height, const unsigned width,
         const TilingWFCOptions &options, int seed)
@@ -408,4 +414,4 @@ class TilingWFC {
     }
 };
 
-#endif  // FAST_WFC_TILING_WFC_HPP_
+#endif  // WFC_TILING_WFC_HPP_

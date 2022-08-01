@@ -1,5 +1,5 @@
-#ifndef FAST_WFC_DIRECTION_HPP_
-#define FAST_WFC_DIRECTION_HPP_
+#ifndef WFC_DIRECTION_HPP_
+#define WFC_DIRECTION_HPP_
 
 /**
  * A direction is represented by an unsigned integer in the range [0; 3].
@@ -15,4 +15,4 @@ constexpr unsigned get_opposite_direction(unsigned direction) noexcept {
     return 3 - direction;
 }
 
-#endif  // FAST_WFC_DIRECTION_HPP_
+#endif  // WFC_DIRECTION_HPP_
