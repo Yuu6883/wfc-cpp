@@ -67,7 +67,7 @@ class WFC {
     const Heuristic heuristic;
 
     virtual void init() noexcept = 0;
-    virtual void clear() noexcept = 0;
+    virtual bool clear() noexcept = 0;
 
     /** Initialize wave */
     void post_init() noexcept {
@@ -117,13 +117,16 @@ class WFC {
         }
 
         wave->init(propagator, wSum, wSumLogW, e0);
-        clear();
+
+        if (clear()) {
+            if (!propagate(rng)) return false;
+        }
 
         for (int32_t l = 0; l < limit || limit < 0; l++) {
             int32_t index = wave->observe_next(MX, MY, MZ, N, periodic, rng);
             if (index >= 0) {
                 observe(index, rng);
-                if (!propagate()) return false;
+                if (!propagate(rng)) return false;
             } else break;
         }
 
@@ -151,8 +154,18 @@ class WFC {
     }
 
     /** Propagate the state */
-    bool propagate() noexcept {
+    template <typename RNG>
+    bool propagate(RNG& rng) noexcept {
+
         while (!stack.empty()) {
+            // Random pop experiment, yields same result
+            /*
+            std::uniform_int_distribution<size_t> index_range(0, stack.size() - 1);
+            size_t index = index_range(rng);
+            auto item = stack[index];
+
+            stack[index] = stack.back();
+            */
             auto item = stack.back();
             stack.pop_back();
 

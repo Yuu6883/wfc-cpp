@@ -186,17 +186,16 @@ class OverlappingWFC : public WFC {
         }
     }
 
-    void clear() noexcept override {
+    bool clear() noexcept override {
         if (options.ground) {
             for (size_t x = 0; x < MX; x++) {
                 for (size_t p = 0; p < P - 1; p++) ban(x + (MY - 1) * MX, p);
                 for (size_t y = 0; y < MY - 1; y++) ban(x + y * MX, P - 1);
             }
 
-            if (!propagate()) {
-                std::cerr << "ground propagate failed" << std::endl;
-            }
+            return true;
         }
+        return false;
     }
 
    public:
