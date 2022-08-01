@@ -10,11 +10,11 @@ Renamed to **wfc-cpp** because original repository does not employ any real opti
 
 The project is also refactored to **header-only**, so it's easier to include.
 
-# Requirements
+## Requirements
 
 C++-20 compatible compiler & CMake
 
-# Building the examples
+## Building the examples
 
 ```
 git clone https://github.com/Yuu6883/wfc-cpp && cd wfc-cpp/
@@ -24,18 +24,18 @@ cmake ../ && cmake --build .
 
 Models are defined in `example/samples.xml`, and will put the results in `results` folder in the executable folder.
 
-# Third-parties library
+## Third-parties library
 
 The files in `example/include/external/` come from:
 
 -   RapidXML [https://github.com/dwd/rapidxml](https://github.com/dwd/rapidxml)
 -   stb Library [https://github.com/nothings/stb](https://github.com/nothings/stb)
 
-# Image samples
+## Image samples
 
 The image samples come from [https://github.com/mxgmn/WaveFunctionCollapse](https://github.com/mxgmn/WaveFunctionCollapse)
 
-# Licence
+## Licence
 
 Copyright (c) 2018-2019 Mathieu Fehr and Nathanaël Courant.
 Copyright (c) 2022 Yuu
