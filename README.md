@@ -1,6 +1,6 @@
 # wfc-cpp
 
-Fork of [fast-wfc](https://github.com/math-fehr/fast-wfc)
+Detached forked from [fast-wfc](https://github.com/math-fehr/fast-wfc)
 
 ## WIP
 
