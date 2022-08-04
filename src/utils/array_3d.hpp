@@ -18,7 +18,7 @@ class Array3D {
     /**
      * The dimensions of the 3D array.
      */
-    const size_t MX, MY, MZ;
+    const size_t MX, MY, MZ, MXY;
 
     /**
      * The array containing the data of the 3D array.
@@ -30,23 +30,23 @@ class Array3D {
      * All the arrays elements are initialized to default value.
      */
     Array3D(size_t MX, size_t MY, size_t MZ) noexcept
-        : MX(MX), MY(MY), MZ(MZ), data(MX * MY * MZ) {}
+        : MX(MX), MY(MY), MZ(MZ), MXY(MX * MY), data(MX * MY * MZ) {}
 
     /**
      * Build a 2D array given its height, width and depth.
      * All the arrays elements are initialized to value
      */
     Array3D(size_t MX, size_t MY, size_t MZ, T value) noexcept
-        : MX(MX), MY(MY), MZ(MZ), data(MX * MY * MZ, value) {}
+        : MX(MX), MY(MY), MZ(MZ), MXY(MX* MY), data(MX * MY * MZ, value) {}
 
     inline T &get(size_t x, size_t y, size_t z) noexcept {
         assert(x < MX && y < MY && z < MZ);
-        return data[x + y * MX + z * MX * MY];
+        return data[x + y * MX + z * MXY];
     }
 
     inline void set(size_t x, size_t y, size_t z, T value) {
         assert(x < MX && y < MY && z < MZ);
-        data[x + y * MX + z * MX * MY] = value;
+        data[x + y * MX + z * MXY] = value;
     }
 
     inline void fill(T value) { std::fill(data.begin(), data.end(), value); }

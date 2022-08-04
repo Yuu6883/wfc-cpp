@@ -103,8 +103,10 @@ class OverlappingWFC : public WFC {
         unordered_map<size_t, size_t> wtable;
         vector<size_t> ordering;
 
-        size_t xmax = options.periodic_input ? options.i_W : options.i_W - N + 1;
-        size_t ymax = options.periodic_input ? options.i_H : options.i_H - N + 1;
+        size_t xmax =
+            options.periodic_input ? options.i_W : options.i_W - N + 1;
+        size_t ymax =
+            options.periodic_input ? options.i_H : options.i_H - N + 1;
 
         vector<uint8_t> temp(N * N);
 
@@ -160,8 +162,9 @@ class OverlappingWFC : public WFC {
             weights[counter] = wtable[w];
         }
 
-        auto agrees = [&](const vector<uint8_t> &p1, const vector<uint8_t> &p2, 
-            const int dx, const int dy) {
+        // How compile this into inline version for fixed dx,dy, and N=2,3?
+        auto agrees = [&](const vector<uint8_t> &p1, const vector<uint8_t> &p2,
+                          const int dx, const int dy) {
             size_t xmin = dx < 0 ? 0 : dx, xmax = dx < 0 ? dx + N : N;
             size_t ymin = dy < 0 ? 0 : dy, ymax = dy < 0 ? dy + N : N;
 
@@ -172,16 +175,26 @@ class OverlappingWFC : public WFC {
             return true;
         };
 
-        propagator.resize(4);
-        for (uint8_t d = 0; d < 4; d++) {
-            propagator[d] = vector<vector<uint32_t>>();
-            propagator[d].resize(P);
-            for (size_t p1 = 0; p1 < P; p1++) {
-                auto &list = propagator[d][p1] = vector<uint32_t>();
-                for (size_t p2 = 0; p2 < P; p2++) {
-                    if (agrees(patterns[p1], patterns[p2], DX[d], DY[d]))
-                        list.push_back(p2);
+        propagator.flat.clear();
+        propagator.table = Array2D<Propagator::Entry>(4, P);
+
+        uint32_t offset = 0;
+
+        for (uint32_t p1 = 0; p1 < P; p1++) {
+#pragma unroll
+            for (uint8_t d = 0; d < 4; d++) {
+                Propagator::Entry entry{};
+                entry.offset = offset;
+
+                for (uint32_t p2 = 0; p2 < P; p2++) {
+                    if (agrees(patterns[p1], patterns[p2], DX[d], DY[d])) {
+                        offset++;
+                        entry.length++;
+                        propagator.flat.push_back(p2);
+                    }
                 }
+
+                propagator.table.set(d, p1, entry);
             }
         }
     }
@@ -199,7 +212,6 @@ class OverlappingWFC : public WFC {
     }
 
    public:
-
     /**
      * Transform the wave to a valid output (a 2d array of patterns that
      * aren't in contradiction). This function should be used only when all
@@ -233,16 +245,15 @@ class OverlappingWFC : public WFC {
                 uint32_t colorIndex = pattern[dx + dy * N];
                 uint32_t color = colors[colorIndex];
 
-                out.set(x, y, {
-                    uint8_t((color >> 16) & 0xFF),
-                    uint8_t((color >> 8) & 0xFF), 
-                    uint8_t(color & 0xFF)
-                });
+                out.set(x, y,
+                        {uint8_t((color >> 16) & 0xFF),
+                         uint8_t((color >> 8) & 0xFF), uint8_t(color & 0xFF)});
             }
         }
 
         if (sus) {
-            std::cerr << "get_output() called on contradicted wfc(overlap)" << std::endl;
+            std::cerr << "get_output() called on contradicted wfc(overlap)"
+                      << std::endl;
         }
 
         return out;

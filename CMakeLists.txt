@@ -9,7 +9,19 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
+if (WIN32)
+else()
+    set(CMAKE_CXX_FLAGS_RELEASE  "-march=native -Ofast")
+endif()
+
 add_executable(${PROJECT_NAME} example/main.cpp)
+
+target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+      $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+      $<$<CONFIG:Release>:NDEBUG>
+      $<$<CONFIG:MinSizeRel>:NDEBUG>
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ./src/

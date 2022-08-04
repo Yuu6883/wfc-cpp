@@ -31,17 +31,27 @@ class Wave {
 
     /** Bitmap and counter of pattern compatbility */
     Array2D<bool> data;
-    Array3D<int32_t> compatible;
+    Array3D<uint8_t> compatible;
 
    public:
     static inline const uint8_t opposite[] = {2, 3, 0, 1, 5, 4};
 
-    typedef vector<vector<vector<uint32_t>>> Propagator;
+    struct Propagator {
+        struct Entry {
+            uint32_t offset;
+            uint32_t length;
+        };
+
+        Array2D<Entry> table;
+        vector<uint16_t> flat;
+
+        Propagator() : table(0, 0){};
+    };
 
     /** Type of heuristic used to choose next unobserved node **/
     enum class Heuristic { Entropy, MRV, Scanline };
     // Counter
-    vector<uint32_t> counts;
+    vector<uint16_t> counts;
     /** Memoisation for computating entropy */
     vector<ShannonEntropy> memoisations;
 
@@ -66,10 +76,12 @@ class Wave {
     inline void init(const Propagator& propagator, double wSum, double wSumLogW,
                      double e0) {
         data.fill(true);
+
         for (size_t i = 0; i < L; i++) {
             for (size_t p = 0; p < P; p++) {
                 for (size_t d = 0; d < D; d++) {
-                    compatible.set(d, p, i, propagator[opposite[d]][p].size());
+                    compatible.set(d, p, i,
+                                   propagator.table.get(opposite[d], p).length);
                 }
             }
         }
@@ -107,7 +119,8 @@ class Wave {
             memoisations[index].wSumLogW -= wLogW[pattern];
 
             sum = memoisations[index].wSum;
-            memoisations[index].entropy -= memoisations[index].wSumLogW / sum - log(sum);
+            memoisations[index].entropy -=
+                memoisations[index].wSumLogW / sum - log(sum);
         }
     }
 
@@ -166,10 +179,14 @@ class Wave {
     };
 
     inline int32_t decre_comp(uint8_t dir, size_t pattern, size_t index) {
-        int& c = this->compatible.get(dir, pattern, index);
+        auto& c = this->compatible.get(dir, pattern, index);
         // Hopefully save 1 unnecessary store op
-        if (c <= 0) return -1;
-        else return --c;
+        return (c <= 0) ? -1 : --c;
+    }
+
+    inline size_t bytes() {
+        return compatible.data.size() * sizeof(compatible.data[0]) +
+               counts.size() * sizeof(counts[0]);
     }
 };
 
