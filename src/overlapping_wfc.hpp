@@ -15,67 +15,53 @@ using std::unordered_map;
 using std::vector;
 
 /**
- * Options needed to use the overlapping wfc.
- */
-struct OverlappingWFCOptions {
-    bool periodic_input;   // True if the input is toric.
-    bool periodic_output;  // True if the output is toric.
-
-    size_t i_W;
-    size_t i_H;
-    size_t o_W;  // The height of the output in pixels.
-    size_t o_H;  // The width of the output in pixels.
-
-    // The number of symmetries (the order is defined in wfc).
-    uint32_t symmetry;
-
-    // The width and height in pixel of the patterns.
-    size_t pattern_size;
-
-    // heuristic used to pick next position to observe
-    Wave::Heuristic heuristic;
-
-    bool ground;  // True if the ground needs to be set (see init_ground).
-
-    /**
-     * Get the wave height given these options.
-     */
-    unsigned get_wave_height() const noexcept {
-        return periodic_output ? o_H : o_H - pattern_size + 1;
-    }
-
-    /**
-     * Get the wave width given these options.
-     */
-    unsigned get_wave_width() const noexcept {
-        return periodic_output ? o_W : o_W - pattern_size + 1;
-    }
-};
-
-/**
  * Overlapping WFC algorithm.
  */
 class OverlappingWFC : public WFC {
+   public:
+    /**
+     * Options needed to use the overlapping wfc.
+     */
+    struct Options {
+        bool periodic_input;   // True if the input is toric.
+        bool periodic_output;  // True if the output is toric.
+
+        size_t i_W;
+        size_t i_H;
+        size_t o_W;  // The height of the output in pixels.
+        size_t o_H;  // The width of the output in pixels.
+
+        // The number of symmetries (the order is defined in wfc).
+        uint32_t symmetry;
+
+        // The width and height in pixel of the patterns.
+        size_t pattern_size;
+
+        // heuristic used to pick next position to observe
+        Wave::Heuristic heuristic;
+
+        bool ground;  // True if the ground needs to be set (see init_ground).
+    };
+
    private:
     /**
      * Options needed by the algorithm.
      */
-    OverlappingWFCOptions options;
+    const Options &options;
+    // Input ref
+    const Array2D<uint32_t> &input;
 
     // Patterns
     vector<vector<uint8_t>> patterns;
     // Colors
     vector<uint32_t> colors;
-    // Input ref
-    const Array2D<uint32_t> &input;
 
    public:
     /**
      * Constructor used only to call the other constructor with more
      * computed parameters.
      */
-    OverlappingWFC(const OverlappingWFCOptions options,
-                   const Array2D<uint32_t> &input)
+    OverlappingWFC(const Options &options, const Array2D<uint32_t> &input)
         : WFC(options.o_W, options.o_H, 1, options.pattern_size,
               options.periodic_output, options.heuristic),
           options(options),
@@ -163,8 +149,12 @@ class OverlappingWFC : public WFC {
         }
 
         // How compile this into inline version for fixed dx,dy, and N=2,3?
-        auto agrees = [&](const vector<uint8_t> &p1, const vector<uint8_t> &p2,
-                          const int dx, const int dy) {
+        from_dense([&](uint32_t i1, uint32_t i2, uint8_t d) {
+            const int dx = DX[d];
+            const int dy = DY[d];
+
+            const vector<uint8_t> &p1 = patterns[i1];
+            const vector<uint8_t> &p2 = patterns[i2];
             size_t xmin = dx < 0 ? 0 : dx, xmax = dx < 0 ? dx + N : N;
             size_t ymin = dy < 0 ? 0 : dy, ymax = dy < 0 ? dy + N : N;
 
@@ -173,30 +163,7 @@ class OverlappingWFC : public WFC {
                     if (p1[x + N * y] != p2[x - dx + N * (y - dy)])
                         return false;
             return true;
-        };
-
-        propagator.flat.clear();
-        propagator.table = Array2D<Propagator::Entry>(4, P);
-
-        uint32_t offset = 0;
-
-        for (uint32_t p1 = 0; p1 < P; p1++) {
-#pragma unroll
-            for (uint8_t d = 0; d < 4; d++) {
-                Propagator::Entry entry{};
-                entry.offset = offset;
-
-                for (uint32_t p2 = 0; p2 < P; p2++) {
-                    if (agrees(patterns[p1], patterns[p2], DX[d], DY[d])) {
-                        offset++;
-                        entry.length++;
-                        propagator.flat.push_back(p2);
-                    }
-                }
-
-                propagator.table.set(d, p1, entry);
-            }
-        }
+        });
     }
 
     bool clear() noexcept override {

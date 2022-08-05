@@ -37,14 +37,19 @@ class Array3D {
      * All the arrays elements are initialized to value
      */
     Array3D(size_t MX, size_t MY, size_t MZ, T value) noexcept
-        : MX(MX), MY(MY), MZ(MZ), MXY(MX* MY), data(MX * MY * MZ, value) {}
+        : MX(MX), MY(MY), MZ(MZ), MXY(MX * MY), data(MX * MY * MZ, value) {}
 
-    inline T &get(size_t x, size_t y, size_t z) noexcept {
+    inline T get(size_t x, size_t y, size_t z) const noexcept {
         assert(x < MX && y < MY && z < MZ);
         return data[x + y * MX + z * MXY];
     }
 
-    inline void set(size_t x, size_t y, size_t z, T value) {
+    inline T& ref(size_t x, size_t y, size_t z) noexcept {
+        assert(x < MX && y < MY && z < MZ);
+        return data[x + y * MX + z * MXY];
+    }
+
+    inline void set(size_t x, size_t y, size_t z, T value) noexcept {
         assert(x < MX && y < MY && z < MZ);
         data[x + y * MX + z * MXY] = value;
     }
@@ -52,7 +57,7 @@ class Array3D {
     inline void fill(T value) { std::fill(data.begin(), data.end(), value); }
 
     /** Check if two 3D arrays are equals */
-    inline bool operator==(const Array3D &a) const noexcept {
+    inline bool operator==(const Array3D& a) const noexcept {
         if (MX != a.MX || MY != a.MY || MZ != a.MZ) return false;
         return data == a.data;
     }

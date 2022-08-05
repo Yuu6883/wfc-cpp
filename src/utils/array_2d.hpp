@@ -53,7 +53,7 @@ class Array2D {
         Array2D<T> result = Array2D<T>(MX, MY);
         for (size_t y = 0; y < MY; y++) {
             for (size_t x = 0; x < MX; x++) {
-                result.get(x, y) = get(MX - 1 - x, y);
+                result.set(x, y, get(MX - 1 - x, y));
             }
         }
         return result;
@@ -64,7 +64,7 @@ class Array2D {
         Array2D<T> result = Array2D<T>(MX, MY);
         for (std::size_t y = 0; y < MX; y++) {
             for (std::size_t x = 0; x < MY; x++) {
-                result.get(x, y) = get(MX - 1 - y, x);
+                result.set(x, y, get(MX - 1 - y, x));
             }
         }
         return result;

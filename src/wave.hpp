@@ -179,7 +179,7 @@ class Wave {
     };
 
     inline int32_t decre_comp(uint8_t dir, size_t pattern, size_t index) {
-        auto& c = this->compatible.get(dir, pattern, index);
+        auto& c = this->compatible.ref(dir, pattern, index);
         // Hopefully save 1 unnecessary store op
         return (c <= 0) ? -1 : --c;
     }

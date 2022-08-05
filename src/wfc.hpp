@@ -5,7 +5,7 @@
 #include <random>
 
 #include "utils/array_2d.hpp"
-#include "utils/xoshiro256ss.h"
+#include "utils/xoshiro256ss.hpp"
 #include "wave.hpp"
 
 using std::optional;
@@ -54,20 +54,14 @@ class WFC {
     vector<BanItem> stack;
     size_t stack_len = 0;
 
+    /** The propagator, used to propagate the information in the wave */
+    Propagator propagator;
+    // Propagator propagator_copy;
+
    protected:
     inline constexpr static int8_t DX[] = {-1, 0, 1, 0, 0, 0};
     inline constexpr static int8_t DY[] = {0, 1, 0, -1, 0, 0};
     inline constexpr static int8_t DZ[] = {0, 0, 0, 0, 1, -1};
-
-    /** Distribution of the patterns as given in input */
-    vector<double> weights;
-
-    /** The wave, indicating which patterns can be put in which cell */
-    Wave* wave = nullptr;
-
-    /** The propagator, used to propagate the information in the wave */
-    Propagator propagator;
-    // Propagator propagator_copy;
 
     size_t P = 0;
     const size_t MX, MY, MZ, N;
@@ -75,8 +69,40 @@ class WFC {
     const bool periodic;
     const Heuristic heuristic;
 
+    /** Distribution of the patterns as given in input */
+    vector<double> weights;
+
+    /** The wave, indicating which patterns can be put in which cell */
+    Wave* wave = nullptr;
+
     virtual void init() noexcept = 0;
     virtual bool clear() noexcept = 0;
+
+    template <typename CB>
+    inline void from_dense(const CB& agree) {
+        propagator.flat.clear();
+        propagator.table = Array2D<Propagator::Entry>(4, P);
+
+        uint32_t offset = 0;
+
+        for (uint32_t p1 = 0; p1 < P; p1++) {
+#pragma unroll
+            for (uint8_t d = 0; d < 4; d++) {
+                Propagator::Entry entry{};
+                entry.offset = offset;
+
+                for (uint32_t p2 = 0; p2 < P; p2++) {
+                    if (agree(p1, p2, d)) {
+                        offset++;
+                        entry.length++;
+                        propagator.flat.push_back(p2);
+                    }
+                }
+
+                propagator.table.set(d, p1, entry);
+            }
+        }
+    }
 
     /** Initialize wave */
     void post_init() noexcept {
