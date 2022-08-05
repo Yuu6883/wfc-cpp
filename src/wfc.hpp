@@ -84,6 +84,7 @@ class WFC {
         propagator.table = Array2D<Propagator::Entry>(4, P);
 
         uint32_t offset = 0;
+        uint32_t dense = 0;
 
         for (uint32_t p1 = 0; p1 < P; p1++) {
 #pragma unroll
@@ -100,8 +101,15 @@ class WFC {
                 }
 
                 propagator.table.set(d, p1, entry);
+                dense += entry.length;
             }
         }
+
+        propagator.flat.shrink_to_fit();
+
+        // density = 100% - sparsity
+        fprintf(stderr, "Propagator density: %.2f%%\n",
+                100.f * dense / (P * P * 4));
     }
 
     /** Initialize wave */
