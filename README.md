@@ -5,7 +5,7 @@ Detached forked from [fast-wfc](https://github.com/math-fehr/fast-wfc)
 ##
 Only overlapping model is implemented.
 
-Renamed to **wfc-cpp** because original repository does not employ any real optimization on the algorithm, therefore the "fast" in the name makes 0 sense. The funny part is that it claims the "optimizations improves the execution time by an order of magnitude" (🚀🚀🚀) when it's really just the C++ compiler doing a better job than C# compiler, not because your code is better. 
+Renamed to **wfc-cpp** because original repository does not employ any real optimization on the algorithm, therefore the "fast" in the name makes 0 sense. The funny part is that it claims the "optimizations improves the execution time by an order of magnitude" (🚀🚀🚀) when it's really just the C++ compiler doing a better job than C# compiler, not because the code is better. 
 
 If you just run the examples and compare the time elapsed, the numbers are completely unless because the runtime heavily varies based on PRNG. Same WFC model can run and fail 10 times in the C++ version and run once and succeed in the C# version which takes far less time - no conclusion can be made from this kind of eyeballing. An actual precise and scientific way to benchmark this would require both executable using the same random number generator and seed combined with A/B testing on varies model.
 
