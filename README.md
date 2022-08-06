@@ -36,7 +36,7 @@ The files in `example/include/external/` come from:
 
 The image samples come from [https://github.com/mxgmn/WaveFunctionCollapse](https://github.com/mxgmn/WaveFunctionCollapse)
 
-# Random notes
+## Random notes
 
 This repository is actually a detached forked from [fast-wfc](https://github.com/math-fehr/fast-wfc)
 
